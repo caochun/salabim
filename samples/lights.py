@@ -1,9 +1,9 @@
 import math
-import salabim as sim
 import enum
 import itertools
 import collections
 
+from salabim.salabim import salabim as sim
 
 class Directions(enum.Enum):  # order is not important
     east = enum.auto()
@@ -439,5 +439,5 @@ if make_video:
     env.video_close()
 else:
     env.animate(True)
-    env.animate3d(True)
+    # env.animate3d(True)
     env.run()

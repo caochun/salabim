@@ -13340,6 +13340,13 @@ class Environment:
 
         only issue run() from the main level
         """
+
+        start_time = self.now()
+        print(f"[Salabim] {'-'*40}")
+        print(f"[Salabim] Simulation started at time: {start_time}")
+        print(f"[Salabim] Duration: {duration if duration else 'unlimited'}")
+        print(f"[Salabim] {'-'*40}")
+
         self.end_on_empty_eventlist = False
         extra = ""
         if till is None:
