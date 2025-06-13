@@ -11210,6 +11210,15 @@ class Environment:
 
             if self._event_list:
                 (t, priority, seq, c, return_value) = heapq.heappop(self._event_list)
+                # 添加调试信息打印
+                print(f"\n[DEBUG] Event details:")
+                print(f"  Time (t): {t}")
+                print(f"  Priority: {priority}")
+                print(f"  Sequence: {seq}")
+                print(f"  Component (c): {c}")
+                print(f"  Return value: {return_value}")
+                print("-" * 40)
+
             else:
                 t = inf  # only events with t==inf left, so signal that we have ended
             if t == inf:
