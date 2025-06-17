@@ -198,7 +198,7 @@ def test_dis():
 
     names = sim.Monitor()
     for component in components:
-        names.tally(component.name().split(".")[0])
+        names.tally((component.name().split(".")[0],sim.now()))
 
 def test_moments():
     moments=(1,2,3,4,100,5)

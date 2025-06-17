@@ -43,6 +43,8 @@ import base64
 import zipfile
 from pathlib import Path
 
+import zmq
+
 
 from typing import Any, Union, Iterable, Tuple, List, Callable, TextIO, Dict, Set, Type, Hashable, Optional
 
@@ -10699,6 +10701,9 @@ class Environment:
         self._video_out = None
         self._video_repeat = 1
         self._video_pingpong = False
+
+        self.socket = None
+
         if self.env._yieldless:
             global greenlet
             import greenlet
@@ -11218,6 +11223,7 @@ class Environment:
                 print(f"  Component (c): {c}")
                 print(f"  Return value: {return_value}")
                 print("-" * 40)
+                self.socket.send_string(f"Event at {self.time_to_str(t)}: {c.name()} with priority {priority} and sequence {seq}")
 
             else:
                 t = inf  # only events with t==inf left, so signal that we have ended
@@ -13355,6 +13361,9 @@ class Environment:
         print(f"[Salabim] Simulation started at time: {start_time}")
         print(f"[Salabim] Duration: {duration if duration else 'unlimited'}")
         print(f"[Salabim] {'-'*40}")
+
+        self.socket = zmq.Context().socket(zmq.PUB)  # 创建发布端 socket
+        self.socket.bind("tcp://*:5555")       # 绑定到本地端口
 
         self.end_on_empty_eventlist = False
         extra = ""
