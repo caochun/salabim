@@ -4,7 +4,7 @@ import itertools
 import collections
 
 from salabim.salabim import salabim as sim
-
+from salabim.salabim import marked_property
 
 class Directions(enum.Enum):  # order is not important
     east = enum.auto()
@@ -150,16 +150,31 @@ class Vehicle(sim.Component):
     def l_t(self, t):
         return sim.interpolate(t, self.t0, self.t1, self.l - resolution, self.l)
 
+    @marked_property
+    def currentX(self):
+        return self.x(self.env.now(), xoffset=0, yoffset=0)
+
     def x(self, t, xoffset=0, yoffset=0):
         position_info = self.position(self.l_t(t))
         xdis, ydis = rotate(xoffset, yoffset, angle=position_info.angle)
         return position_info.x + xdis
+    
+    @marked_property
+    def currentY(self):
+        return self.y(self.env.now(), xoffset=0, yoffset=0)
+    
 
     def y(self, t, xoffset=0, yoffset=0):
         position_info = self.position(self.l_t(t))
         xdis, ydis = rotate(xoffset, yoffset, angle=position_info.angle)
         return position_info.y + ydis
-
+    
+    @marked_property
+    def currentAngle(self):
+        self.t0 = self.env.now()
+        self.t1 = self.env.now()
+        return self.angle(self.env.now())
+    
     def angle(self, t):
         return math.degrees(self.position(self.l_t(t)).angle)
 

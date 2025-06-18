@@ -44,6 +44,7 @@ import zipfile
 from pathlib import Path
 
 import zmq
+import json
 
 
 from typing import Any, Union, Iterable, Tuple, List, Callable, TextIO, Dict, Set, Type, Hashable, Optional
@@ -7017,6 +7018,10 @@ class TrajectoryCircle(_Trajectory):
         """
         return super().rendered_polygon(time_step)
 
+def marked_property(func):
+    """装饰器：标记属性为“已选中”"""
+    func._is_marked = True
+    return property(func)
 
 class Component:
     """
@@ -7128,6 +7133,20 @@ class Component:
 
         if omitted, default_env will be used
     """
+    def get_marked_attributes(self):
+        """返回所有被 marked_property 修饰的属性键值对"""
+        marked = {}
+        for attr_name in dir(self):
+            attr = getattr(self.__class__, attr_name, None)
+            if isinstance(attr, property) and getattr(attr.fget, "_is_marked", False):
+                marked[attr_name] = getattr(self, attr_name)
+        return marked
+
+    @property
+    def __mark_attributes__(self):
+        """自定义属性字典（只包含被装饰的属性）"""
+        return self.get_marked_attributes()
+
 
     def __init__(
         self,
@@ -11216,14 +11235,8 @@ class Environment:
             if self._event_list:
                 (t, priority, seq, c, return_value) = heapq.heappop(self._event_list)
                 # 添加调试信息打印
-                print(f"\n[DEBUG] Event details:")
-                print(f"  Time (t): {t}")
-                print(f"  Priority: {priority}")
-                print(f"  Sequence: {seq}")
-                print(f"  Component (c): {c}")
-                print(f"  Return value: {return_value}")
-                print("-" * 40)
-                self.socket.send_string(f"Event at {self.time_to_str(t)}: {c.name()} with priority {priority} and sequence {seq}")
+
+                self.socket.send_string(f"Event at {self.time_to_str(t)}: {json.dumps(c.__mark_attributes__, indent=2)} with priority {priority} and sequence {seq}")
 
             else:
                 t = inf  # only events with t==inf left, so signal that we have ended
