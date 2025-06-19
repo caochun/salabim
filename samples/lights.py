@@ -400,6 +400,15 @@ class TrafficLight(sim.Component):
                 self.hold(duration)
 
 
+    @marked_property
+    def colors(self):
+        return {
+            Directions.east.name: color_to_colorspec[self.light[Directions.east]],
+            Directions.north.name: color_to_colorspec[self.light[Directions.north]],
+            Directions.west.name: color_to_colorspec[self.light[Directions.west]],
+            Directions.south.name: color_to_colorspec[self.light[Directions.south]],
+        }
+
 class VehicleGenerator(sim.Component):
     def setup(self, from_direction, color):
         self.from_direction = from_direction

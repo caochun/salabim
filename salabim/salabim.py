@@ -11234,10 +11234,6 @@ class Environment:
 
             if self._event_list:
                 (t, priority, seq, c, return_value) = heapq.heappop(self._event_list)
-                # 添加调试信息打印
-
-                self.socket.send_string(f"Event at {self.time_to_str(t)}: {json.dumps(c.__mark_attributes__, indent=2)} with priority {priority} and sequence {seq}")
-
             else:
                 t = inf  # only events with t==inf left, so signal that we have ended
             if t == inf:
@@ -11289,6 +11285,17 @@ class Environment:
                     c._process(**c._process_kwargs)
 
                     self._terminate(c)
+
+            # Send current component out
+            payload = {
+                "event_time": self.time_to_str(t),
+                "component": str(c),  # 你可以自定义 c.__str__() 以控制格式
+                "attributes": c.__mark_attributes__,
+                "priority": priority,
+                "sequence": seq
+            }
+
+            self.socket.send_string(json.dumps(payload, indent=2))
         except Exception as e:
             if self._animate:
                 self.an_quit()
