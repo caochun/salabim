@@ -7147,6 +7147,9 @@ class Component:
         """自定义属性字典（只包含被装饰的属性）"""
         return self.get_marked_attributes()
 
+    def receive(self, message: Any, sender: "Component" = None) -> None:
+        pass
+
 
     def __init__(
         self,
@@ -10721,7 +10724,8 @@ class Environment:
         self._video_repeat = 1
         self._video_pingpong = False
 
-        self.socket = None
+        self.pub_socket = None
+        self.pull_socket = None
 
         if self.env._yieldless:
             global greenlet
@@ -11295,7 +11299,20 @@ class Environment:
                 "sequence": seq
             }
 
-            self.socket.send_string(json.dumps(payload, indent=2))
+            self.pub_socket.send_string(json.dumps(payload, indent=2))
+
+
+            while True:
+                try:
+                    msg = self.pull_socket.recv_string(flags=zmq.DONTWAIT)
+                    
+                    print(f"Received: {msg}")
+                except zmq.Again:
+                    # 没有更多消息时跳出
+                    print("No more messages.")
+                    break
+
+
         except Exception as e:
             if self._animate:
                 self.an_quit()
@@ -13382,8 +13399,11 @@ class Environment:
         print(f"[Salabim] Duration: {duration if duration else 'unlimited'}")
         print(f"[Salabim] {'-'*40}")
 
-        self.socket = zmq.Context().socket(zmq.PUB)  # 创建发布端 socket
-        self.socket.bind("tcp://*:5555")       # 绑定到本地端口
+        self.pub_socket = zmq.Context().socket(zmq.PUB)  # 创建发布端 socket
+        self.pub_socket.bind("tcp://*:5555")       # 绑定到本地端口
+
+        self.pull_socket = zmq.Context().socket(zmq.PULL)  # 创建拉取端 socket
+        self.pull_socket.bind("tcp://*:6666")              # 绑定到本地
 
         self.end_on_empty_eventlist = False
         extra = ""
