@@ -351,6 +351,10 @@ class Vehicle(sim.Component):
 
 
 class TrafficLight(sim.Component):
+
+    def receive(self, message):
+        print("TrafficLight received message:", message)
+
     def setup(self):
         self.light = {}
         for direction, angle in direction_to_angle.items():

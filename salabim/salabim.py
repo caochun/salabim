@@ -11305,13 +11305,34 @@ class Environment:
             while True:
                 try:
                     msg = self.pull_socket.recv_string(flags=zmq.DONTWAIT)
+                    data = json.loads(msg)  # 解析为 dict
+
+                    component = data.get("component")  # 获取 component 属性的值
+                    match = None
+
+                    for item in self._event_list:
+                        name = item[3].name()
+                        if name == component:
+                            match = item
+                            break  # 找到第一个匹配的就退出循环
+
+                    if match is None:
+                        break
                     
-                    print(f"Received: {msg}")
+                    print(match)
+
+                    if isinstance(match[3], Component):
+                        message = data.get("msg")
+                        match[3].receive(message)
+                        print(f"Component: {component} received: {message}")
                 except zmq.Again:
                     # 没有更多消息时跳出
-                    print("No more messages.")
+                    # print("No more messages.")
                     break
-
+                except json.JSONDecodeError as e:
+                    print("JSON 格式错误:", e)
+                except Exception as e:
+                    print("其他错误:", e)
 
         except Exception as e:
             if self._animate:
